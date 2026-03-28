@@ -987,6 +987,61 @@ input:focus, select:focus, textarea:focus {
   .home-greeting h1 { font-size: 36px; }
 }
 
+/* ── LOADING SCREEN ── */
+#loading-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  z-index: 9999;
+}
+
+.loading-heart {
+  animation: heartbeat 1.2s ease-in-out infinite;
+}
+
+.loading-text {
+  font-family: 'Covered By Your Grace', cursive;
+  font-size: 24px;
+  color: var(--rosa-400);
+  letter-spacing: 0.5px;
+}
+
+/* ── ERROR SCREEN ── */
+#error-screen {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  z-index: 9999;
+  text-align: center;
+  padding: 40px;
+}
+
+#error-screen h2 {
+  font-family: 'Covered By Your Grace', cursive;
+  font-size: 38px;
+  color: var(--rosa-600);
+  font-weight: 400;
+}
+
+#error-screen p {
+  color: var(--text-muted);
+  font-size: 15px;
+  max-width: 320px;
+  line-height: 1.7;
+}
+
+.error-icon { margin-bottom: 8px; }
+
 ::-webkit-scrollbar { width: 5px; }
 ::-webkit-scrollbar-track { background: var(--rosa-100); }
 ::-webkit-scrollbar-thumb { background: var(--rosa-400);  }

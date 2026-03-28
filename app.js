@@ -24,23 +24,199 @@ const DEFAULT_TAGS = [
 ];
 
 // ═══════════════════════════════════════
-// DATA HELPERS
+// FIREBASE — CONFIGURAÇÃO
 // ═══════════════════════════════════════
-const LS = {
-  get(k, fallback) { try { return JSON.parse(localStorage.getItem(k)) || fallback; } catch { return fallback; } },
-  set(k, v) { localStorage.setItem(k, JSON.stringify(v)); }
+/*
+ * ─────────────────────────────────────────────────────────────
+ *  NOSSO TEMPO — Firebase Realtime Database
+ * ─────────────────────────────────────────────────────────────
+ *  Painel do projeto : https://console.firebase.google.com
+ *  Banco de dados    : https://SEU_PROJETO-default-rtdb.firebaseio.com
+ *
+ *  Como configurar (primeira vez):
+ *   1. Acesse https://console.firebase.google.com e crie um projeto
+ *   2. Vá em Build → Realtime Database → Criar banco de dados
+ *      → Selecione a região mais próxima → Modo de teste → Concluir
+ *   3. Em Realtime Database → Regras, cole e publique:
+ *      { "rules": { ".read": true, ".write": true } }
+ *   4. Vá em Configurações do projeto (ícone engrenagem)
+ *      → Seus apps → Adicionar app → Web
+ *   5. Copie o objeto firebaseConfig e substitua os valores abaixo
+ * ─────────────────────────────────────────────────────────────
+ */
+const FIREBASE_CONFIG = {
+  apiKey:            "AIzaSyCZM1rMwmrejOY0RylPpQ5bVpvkdJNH5BU",
+  authDomain:        "nosso-tempo-af8de.firebaseapp.com",
+  databaseURL:       "https://nosso-tempo-af8de-default-rtdb.firebaseio.com",
+  projectId:         "nosso-tempo-af8de",
+  storageBucket:     "nosso-tempo-af8de.firebasestorage.app",
+  messagingSenderId: "1068464889173",
+  appId:             "1:1068464889173:web:a90e964e8b4638b5c3a3dc",
+  measurementId:     "G-SSDYLRPVJQ"
 };
 
-function entries()    { return LS.get('yj_entries', []); }
-function saveEntries(d) { LS.set('yj_entries', d); }
-function config()     { return LS.get('yj_config', { name1:'Ygor', name2:'Julianne' }); }
-function saveConf(c)  { LS.set('yj_config', c); }
-function customTags() {
-  return LS.get('yj_tags', []).map(t => typeof t === 'string' ? { name: t, icon: 'sparkles' } : t);
+firebase.initializeApp(FIREBASE_CONFIG);
+const _fdb = firebase.database();
+const _REF = {
+  entries : _fdb.ref('yj/entries'),
+  config  : _fdb.ref('yj/config'),
+  tags    : _fdb.ref('yj/tags'),
+  album   : _fdb.ref('yj/album'),
+};
+
+// Cache em memória — fonte da verdade após o carregamento
+const _cache = {
+  entries : [],
+  config  : { name1: 'Ygor', name2: 'Julianne' },
+  tags    : [],
+  album   : [],
+};
+
+// ═══════════════════════════════════════
+// ESTADO DE CARREGAMENTO
+// ═══════════════════════════════════════
+let _pendingLoads = 4;
+let _appReady     = false;
+let _loadTimer    = null;
+
+function _onDataLoaded() {
+  _pendingLoads--;
+  if (_pendingLoads > 0) return;
+  clearTimeout(_loadTimer);
+  _tryMigrateLocalStorage().finally(() => {
+    document.getElementById('loading-screen').style.display = 'none';
+    _appReady = true;
+    const lastPage = localStorage.getItem('yj_page') || 'home';
+    navigateTo(lastPage);
+  });
 }
-function saveTags(t)  { LS.set('yj_tags', t); }
-function allTags()    { return [...DEFAULT_TAGS, ...customTags().map(t => t.name)]; }
-function tagIcon(t)   {
+
+function showErrorScreen() {
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('error-screen').style.display   = 'flex';
+  lucide.createIcons();
+}
+
+// ═══════════════════════════════════════
+// LISTENERS EM TEMPO REAL
+// ═══════════════════════════════════════
+function setupListeners() {
+  _loadTimer = setTimeout(showErrorScreen, 12000);
+
+  _REF.entries.on('value', snap => {
+    const val = snap.val();
+    _cache.entries = val ? Object.values(val) : [];
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
+
+  _REF.config.on('value', snap => {
+    _cache.config = snap.val() || { name1: 'Ygor', name2: 'Julianne' };
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
+
+  _REF.tags.on('value', snap => {
+    const val = snap.val();
+    _cache.tags = val ? (Array.isArray(val) ? val : Object.values(val)) : [];
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
+
+  _REF.album.on('value', snap => {
+    const val = snap.val();
+    _cache.album = val ? Object.values(val) : [];
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
+}
+
+// Atualiza a renderização da página atual sem resetar formulários
+function _refreshCurrentPage() {
+  const activePage = document.querySelector('.page.active');
+  if (!activePage) return;
+  const pageId = activePage.id.replace('page-', '');
+  ({
+    home    : refreshHome,
+    register: renderTags,
+    history : () => renderHistory(curFilter),
+    reports : renderReports,
+    album   : () => renderAlbum(albumFilter),
+    config  : renderGlobalTags,
+  })[pageId]?.();
+}
+
+// ═══════════════════════════════════════
+// MIGRAÇÃO DO LOCALSTORAGE
+// ═══════════════════════════════════════
+async function _tryMigrateLocalStorage() {
+  try {
+    const localEntries = JSON.parse(localStorage.getItem('yj_entries') || '[]');
+    const localAlbum   = JSON.parse(localStorage.getItem('yj_album')   || '[]');
+    const localTags    = JSON.parse(localStorage.getItem('yj_tags')    || '[]');
+    const localConfig  = JSON.parse(localStorage.getItem('yj_config')  || 'null');
+
+    const hasLocal   = localEntries.length || localAlbum.length || localTags.length || localConfig;
+    const cloudEmpty = !_cache.entries.length && !_cache.album.length && !_cache.tags.length;
+    if (!hasLocal || !cloudEmpty) return;
+
+    const updates = {};
+    localEntries.forEach(e => { updates[`yj/entries/${e.id}`] = e; });
+    localAlbum.forEach(a   => { updates[`yj/album/${a.id}`]   = a; });
+    if (localTags.length) updates['yj/tags']   = localTags;
+    if (localConfig)      updates['yj/config'] = localConfig;
+
+    await _fdb.ref().update(updates);
+    showToast('Dados migrados para a nuvem');
+  } catch (_) { /* migração é best-effort */ }
+}
+
+// ═══════════════════════════════════════
+// DATA HELPERS (lê do cache)
+// ═══════════════════════════════════════
+function entries()      { return _cache.entries; }
+function config()       { return _cache.config; }
+function customTags()   {
+  return (_cache.tags || []).map(t => typeof t === 'string' ? { name: t, icon: 'sparkles' } : t);
+}
+function albumEntries() { return _cache.album; }
+
+// Operações atômicas por documento — nunca sobrescrevem dados de outro dispositivo
+function addEntry(entry) {
+  _REF.entries.child(String(entry.id)).set(entry)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function removeEntry(id) {
+  _REF.entries.child(String(id)).remove()
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function updateEntry(entry) {
+  _REF.entries.child(String(entry.id)).set(entry)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function addPhotoToAlbum(photo) {
+  _REF.album.child(String(photo.id)).set(photo)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function removePhotoFromAlbum(id) {
+  _REF.album.child(String(id)).remove()
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function saveConf(c) {
+  _cache.config = c;
+  _REF.config.set(c)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function saveTags(t) {
+  _cache.tags = t;
+  _REF.tags.set(t.length ? t : null)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function allTags()  { return [...DEFAULT_TAGS, ...customTags().map(t => t.name)]; }
+function tagIcon(t) {
   if (TAG_MAP[t]) return TAG_MAP[t];
   const custom = customTags().find(c => c.name === t);
   return custom ? custom.icon : 'sparkles';
@@ -48,7 +224,7 @@ function tagIcon(t)   {
 
 function formatTime(h) {
   const totalMin = Math.round(h * 60);
-  const hrs = Math.floor(totalMin / 60);
+  const hrs  = Math.floor(totalMin / 60);
   const mins = totalMin % 60;
   return mins > 0 ? `${hrs}h ${mins}min` : `${hrs}h`;
 }
@@ -156,9 +332,8 @@ function saveEntry() {
   const hours = h + m / 60;
   const note = document.getElementById('reg-note').value.trim();
   if (!date || hours <= 0) { showToast('Preencha a data e o tempo'); return; }
-  const data = entries();
-  data.push({ id: Date.now(), date, hours, activities: [...selected], note });
-  saveEntries(data);
+  const entry = { id: Date.now(), date, hours, activities: [...selected], note };
+  addEntry(entry);
   showToast('Momento salvo com sucesso');
   initRegister();
 }
@@ -211,8 +386,7 @@ function renderHistory(filter) {
 
 function delEntry(id) {
   showConfirm('Deseja remover este momento?', () => {
-    saveEntries(entries().filter(e => e.id !== id));
-    renderHistory(curFilter);
+    removeEntry(id);
     showToast('Registro removido');
   });
 }
@@ -268,10 +442,9 @@ function saveEdit() {
   const hours = h + m / 60;
   const note = document.getElementById('edit-note').value.trim();
   if (!date || hours <= 0) { showToast('Preencha a data e o tempo'); return; }
-  const data = entries().map(e => e.id === editingId ? { ...e, date, hours, activities: [...selectedEdit], note } : e);
-  saveEntries(data);
+  const original = entries().find(e => e.id === editingId);
+  updateEntry({ ...original, date, hours, activities: [...selectedEdit], note });
   closeModal();
-  renderHistory(curFilter);
   showToast('Momento atualizado');
 }
 
@@ -368,7 +541,7 @@ function renderReports() {
     options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{position:'bottom',labels:{font:{...font,size:11},color:'#7a5468',padding:10,usePointStyle:true,pointStyleWidth:10}},tooltip:{backgroundColor:'#3d2233',titleFont:font,bodyFont:font,padding:12,cornerRadius:10}}}
   });
 
-  // Weekday bars - ultimos 7 dias
+  // Weekday bars — últimos 7 dias
   const last7bars = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
@@ -389,9 +562,6 @@ function renderReports() {
 // ═══════════════════════════════════════
 let albumFilter = 'all';
 let pendingPhotoSrc = null;
-
-function albumEntries() { return LS.get('yj_album', []); }
-function saveAlbum(d)   { LS.set('yj_album', d); }
 
 function initAlbum() {
   closeAlbumForm();
@@ -463,11 +633,9 @@ function savePhoto() {
   const caption = document.getElementById('album-caption').value.trim();
   const desc    = document.getElementById('album-desc').value.trim();
   if (!date) { showToast('Informe a data da foto'); return; }
-  const data = albumEntries();
-  data.push({ id: Date.now(), date, caption, desc, src: pendingPhotoSrc });
-  saveAlbum(data);
+  const photo = { id: Date.now(), date, caption, desc, src: pendingPhotoSrc };
+  addPhotoToAlbum(photo);
   closeAlbumForm();
-  renderAlbum(albumFilter);
   showToast('Foto salva no álbum');
 }
 
@@ -521,8 +689,7 @@ function renderAlbum(filter) {
 
 function deletePhoto(id) {
   showConfirm('Deseja remover esta foto do álbum?', () => {
-    saveAlbum(albumEntries().filter(e => e.id !== id));
-    renderAlbum(albumFilter);
+    removePhotoFromAlbum(id);
     showToast('Foto removida');
   });
 }
@@ -639,10 +806,12 @@ function removeTag(i) {
 }
 
 function clearAllData() {
-  if (!confirm('Tem certeza que deseja apagar TODOS os dados?')) return;
-  ['yj_entries','yj_config','yj_tags','yj_album'].forEach(k => localStorage.removeItem(k));
-  showToast('Dados removidos');
-  navigateTo('home');
+  showConfirm('Tem certeza que deseja apagar TODOS os dados?', () => {
+    _fdb.ref('yj').remove().catch(() => {});
+    ['yj_entries','yj_config','yj_tags','yj_album'].forEach(k => localStorage.removeItem(k));
+    showToast('Dados removidos');
+    navigateTo('home');
+  });
 }
 
 // ═══════════════════════════════════════
@@ -650,8 +819,7 @@ function clearAllData() {
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
   lucide.createIcons();
-  const lastPage = localStorage.getItem('yj_page') || 'home';
-  navigateTo(lastPage);
+  setupListeners();
 
   // Drag & drop no upload de fotos
   const uploadArea = document.getElementById('upload-area');
