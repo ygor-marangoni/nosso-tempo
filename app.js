@@ -92,6 +92,7 @@ function _onDataLoaded() {
     _appReady = true;
     const lastPage = localStorage.getItem('yj_page') || 'home';
     navigateTo(lastPage);
+    scheduleMidnightRefresh();
   });
 }
 
@@ -101,11 +102,22 @@ function showErrorScreen() {
   lucide.createIcons();
 }
 
+let _midnightTimer = null;
+function scheduleMidnightRefresh() {
+  clearTimeout(_midnightTimer);
+  const now = new Date();
+  const msUntilMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1) - now;
+  _midnightTimer = setTimeout(() => {
+    if (localStorage.getItem('yj_page') === 'home') refreshHome();
+    scheduleMidnightRefresh();
+  }, msUntilMidnight);
+}
+
 // ═══════════════════════════════════════
 // LISTENERS EM TEMPO REAL
 // ═══════════════════════════════════════
 function setupListeners() {
-  _loadTimer = setTimeout(showErrorScreen, 12000);
+  _loadTimer = setTimeout(showErrorScreen, 6000);
 
   _REF.entries.on('value', snap => {
     const val = snap.val();
@@ -250,6 +262,7 @@ function formatTime(h) {
 // NAVIGATION
 // ═══════════════════════════════════════
 function navigateTo(page) {
+  window.scrollTo(0, 0);
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
@@ -330,6 +343,12 @@ function refreshHome() {
     document.getElementById('cnt-years').textContent  = years;
     document.getElementById('cnt-months').textContent = months;
     document.getElementById('cnt-days').textContent   = days;
+    const showYears  = years > 0;
+    const showMonths = years > 0 || months > 0;
+    document.getElementById('cnt-unit-years').style.display  = showYears  ? '' : 'none';
+    document.getElementById('cnt-sep-1').style.display       = showYears  ? '' : 'none';
+    document.getElementById('cnt-unit-months').style.display = showMonths ? '' : 'none';
+    document.getElementById('cnt-sep-2').style.display       = showMonths ? '' : 'none';
     cntWrap.style.display = '';
     noDate.style.display  = 'none';
   } else {
@@ -361,6 +380,7 @@ function initRegister() {
   document.getElementById('reg-minutes').value = '';
   document.getElementById('reg-note').value = '';
   document.getElementById('custom-activity').value = '';
+  ['reg-date', 'reg-hours', 'reg-minutes'].forEach(id => document.getElementById(id).classList.remove('input-error'));
   renderTags();
 }
 
@@ -392,7 +412,15 @@ function saveEntry() {
   const m = parseInt(document.getElementById('reg-minutes').value) || 0;
   const hours = h + m / 60;
   const note = document.getElementById('reg-note').value.trim();
-  if (!date || hours <= 0) { showToast('Preencha a data e o tempo'); return; }
+  if (!date || hours <= 0) {
+    if (!date) document.getElementById('reg-date').classList.add('input-error');
+    if (hours <= 0) {
+      document.getElementById('reg-hours').classList.add('input-error');
+      document.getElementById('reg-minutes').classList.add('input-error');
+    }
+    showToast('Preencha a data e o tempo');
+    return;
+  }
   const entry = { id: Date.now(), date, hours, activities: [...selected], note };
   addEntry(entry);
   showToast('Momento salvo com sucesso');

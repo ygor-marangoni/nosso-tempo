@@ -44,7 +44,6 @@
 <!-- Sidebar -->
 <nav class="sidebar" id="sidebar">
   <div class="logo-area">
-    <div class="logo-heart-icon"><i data-lucide="heart" style="width:34px;height:34px;fill:var(--rosa-500);stroke:var(--rosa-500)"></i></div>
     <div class="logo-title">Nosso Tempo</div>
     <div class="logo-names">Ygor & Julianne</div>
   </div>
@@ -77,6 +76,37 @@
     <p>feito com <i data-lucide="heart" style="width:12px;height:12px;fill:var(--rosa-400);stroke:var(--rosa-400)"></i> amor</p>
   </div>
 </nav>
+
+<!-- Hearts Background -->
+<div class="hearts-bg" aria-hidden="true">
+  <div class="hrt" style="left:8%;top:10%;width:12px;height:12px;opacity:.13;animation:hf1 34s ease-in-out infinite"></div>
+  <div class="hrt" style="left:20%;top:58%;width:8px;height:8px;opacity:.12;animation:hf2 42s ease-in-out infinite -12s"></div>
+  <div class="hrt" style="left:34%;top:22%;width:18px;height:18px;opacity:.10;animation:hf3 50s ease-in-out infinite -6s"></div>
+  <div class="hrt" style="left:25%;top:82%;width:10px;height:10px;opacity:.13;animation:hf1 30s ease-in-out infinite -20s"></div>
+  <div class="hrt" style="left:46%;top:14%;width:16px;height:16px;opacity:.11;animation:hf2 40s ease-in-out infinite -9s"></div>
+  <div class="hrt" style="left:53%;top:68%;width:10px;height:10px;opacity:.14;animation:hf3 44s ease-in-out infinite -24s"></div>
+  <div class="hrt" style="left:38%;top:44%;width:8px;height:8px;opacity:.11;animation:hf1 38s ease-in-out infinite -4s"></div>
+  <div class="hrt" style="left:66%;top:30%;width:14px;height:14px;opacity:.12;animation:hf2 46s ease-in-out infinite -16s"></div>
+  <div class="hrt" style="left:73%;top:75%;width:12px;height:12px;opacity:.11;animation:hf3 28s ease-in-out infinite -8s"></div>
+  <div class="hrt" style="left:81%;top:12%;width:20px;height:20px;opacity:.10;animation:hf1 52s ease-in-out infinite -22s"></div>
+  <div class="hrt" style="left:87%;top:88%;width:8px;height:8px;opacity:.13;animation:hf2 36s ease-in-out infinite -14s"></div>
+  <div class="hrt" style="left:93%;top:50%;width:16px;height:16px;opacity:.11;animation:hf3 42s ease-in-out infinite -28s"></div>
+  <div class="hrt" style="left:59%;top:92%;width:10px;height:10px;opacity:.14;animation:hf1 34s ease-in-out infinite -5s"></div>
+  <div class="hrt" style="left:48%;top:48%;width:12px;height:12px;opacity:.11;animation:hf2 48s ease-in-out infinite -18s"></div>
+  <div class="hrt" style="left:15%;top:35%;width:8px;height:8px;opacity:.13;animation:hf3 40s ease-in-out infinite -10s"></div>
+  <div class="hrt" style="left:3%;top:65%;width:14px;height:14px;opacity:.10;animation:hf2 45s ease-in-out infinite -7s"></div>
+  <div class="hrt" style="left:11%;top:88%;width:10px;height:10px;opacity:.12;animation:hf3 32s ease-in-out infinite -17s"></div>
+  <div class="hrt" style="left:29%;top:5%;width:8px;height:8px;opacity:.11;animation:hf1 44s ease-in-out infinite -3s"></div>
+  <div class="hrt" style="left:42%;top:78%;width:16px;height:16px;opacity:.10;animation:hf2 38s ease-in-out infinite -26s"></div>
+  <div class="hrt" style="left:61%;top:18%;width:10px;height:10px;opacity:.13;animation:hf3 46s ease-in-out infinite -11s"></div>
+  <div class="hrt" style="left:70%;top:55%;width:8px;height:8px;opacity:.12;animation:hf1 30s ease-in-out infinite -19s"></div>
+  <div class="hrt" style="left:78%;top:38%;width:12px;height:12px;opacity:.11;animation:hf2 50s ease-in-out infinite -2s"></div>
+  <div class="hrt" style="left:90%;top:22%;width:8px;height:8px;opacity:.13;animation:hf3 36s ease-in-out infinite -23s"></div>
+  <div class="hrt" style="left:96%;top:72%;width:14px;height:14px;opacity:.10;animation:hf1 42s ease-in-out infinite -31s"></div>
+  <div class="hrt" style="left:5%;top:42%;width:10px;height:10px;opacity:.12;animation:hf2 54s ease-in-out infinite -8s"></div>
+  <div class="hrt" style="left:55%;top:38%;width:18px;height:18px;opacity:.09;animation:hf3 56s ease-in-out infinite -13s"></div>
+  <div class="hrt" style="left:32%;top:60%;width:8px;height:8px;opacity:.12;animation:hf1 36s ease-in-out infinite -29s"></div>
+</div>
 
 <!-- Main Content -->
 <main class="main">
@@ -111,16 +141,16 @@
       <!-- Bloco 2: Tempo -->
       <div class="home-counter-block">
         <div class="home-counter" id="home-counter-wrap">
-          <div class="cnt-unit">
+          <div class="cnt-unit" id="cnt-unit-years">
             <span class="cnt-num" id="cnt-years">0</span>
             <span class="cnt-lbl">anos</span>
           </div>
-          <span class="cnt-sep"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="var(--rosa-600)" stroke="var(--rosa-600)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
-          <div class="cnt-unit">
+          <span class="cnt-sep" id="cnt-sep-1"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="var(--rosa-600)" stroke="var(--rosa-600)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+          <div class="cnt-unit" id="cnt-unit-months">
             <span class="cnt-num" id="cnt-months">0</span>
             <span class="cnt-lbl">meses</span>
           </div>
-          <span class="cnt-sep"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="var(--rosa-600)" stroke="var(--rosa-600)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+          <span class="cnt-sep" id="cnt-sep-2"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="var(--rosa-600)" stroke="var(--rosa-600)" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
           <div class="cnt-unit">
             <span class="cnt-num" id="cnt-days">0</span>
             <span class="cnt-lbl">dias</span>
