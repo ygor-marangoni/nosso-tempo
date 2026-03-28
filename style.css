@@ -28,7 +28,7 @@ body {
   font-family: 'Figtree', sans-serif;
   background: var(--bg);
   color: var(--text);
-  min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 
@@ -61,7 +61,7 @@ body::after {
   position: fixed;
   left: 0; top: 0;
   width: 256px;
-  height: 100vh;
+  height: 100dvh;
   background: var(--card);
   border-right: 1px solid var(--border);
   padding: 32px 20px;
@@ -174,7 +174,7 @@ body::after {
   padding: 40px 48px;
   position: relative;
   z-index: 1;
-  min-height: 100vh;
+  min-height: 100dvh;
 }
 
 .page { display: none; animation: fadeUp 0.45s ease; }
@@ -226,101 +226,252 @@ body::after {
 }
 
 /* ── HOME ── */
-.home-greeting {
-  text-align: center;
-  padding: 40px 0 20px;
-}
-
-.home-greeting .heart-icon {
-  color: var(--rosa-500);
+.home-wrap {
   display: flex;
+  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  animation: heartbeat 2.4s ease-in-out infinite;
+  min-height: calc(100dvh - 80px);
+  padding: 0 24px;
 }
 
-.home-greeting h1 {
+.home-identity {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.home-photo-wrap {
+  position: relative;
+  margin-bottom: 22px;
+}
+
+.home-polaroid {
+  background: #fff;
+  padding: 10px 10px 24px;
+  border-radius: 3px;
+  box-shadow: 0 10px 18px rgba(239,80,135,0.03), 0 2px 10px rgba(0,0,0,0.07);
+}
+
+.home-photo-inner {
+  width: 190px;
+  height: 230px;
+  overflow: hidden;
+  border-radius: 2px;
+}
+
+.home-photo-inner img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.home-photo-heart {
+  position: absolute;
+  bottom: -12px;
+  right: -12px;
+  width: 34px;
+  height: 34px;
+  background: #fff;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(239,80,135,0.18);
+}
+
+.home-photo-ph {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 22px 36px;
+  border: 1.5px dashed var(--rosa-300);
+  border-radius: 16px;
+  cursor: pointer;
+  transition: var(--transition);
+  background: var(--rosa-50);
+}
+
+.home-photo-ph:hover {
+  background: var(--rosa-100);
+  border-color: var(--rosa-500);
+}
+
+.home-photo-ph span {
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.home-greet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  text-align: center;
+  margin-bottom: 6px;
+}
+
+.home-greet-time {
+  font-family: 'Figtree', sans-serif;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 1px;
+}
+
+.home-greet-names {
   font-family: 'Covered By Your Grace', cursive;
-  font-size: 48px;
+  font-size: 38px;
   color: var(--rosa-600);
-  margin-top: 10px;
+  line-height: 1.1;
   font-weight: 400;
 }
 
-.home-greeting p {
+.home-subgreet {
+  font-style: italic;
+  font-size: 13.5px;
   color: var(--text-muted);
-  font-size: 15px;
+  text-align: center;
   margin-top: 8px;
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin: 32px 0;
-}
-
-.stat-card {
+.home-counter-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 36px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
-  text-align: center;
+  padding: 26px 44px 20px;
+  min-width: 280px;
 }
 
-
-
-.stat-icon {
-  color: var(--rosa-400);
-  margin-bottom: 10px;
+.home-counter {
   display: flex;
+  align-items: flex-start;
   justify-content: center;
+  gap: 20px;
+  margin-bottom: 10px;
 }
 
-.stat-number {
-  font-size: 34px;
-  font-weight: 700;
+.cnt-unit {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.cnt-num {
+  font-family: 'Covered By Your Grace', cursive;
+  font-size: 72px;
   color: var(--rosa-600);
   line-height: 1;
 }
 
-.stat-label {
-  font-size: 12px;
-  color: var(--text-muted);
-  margin-top: 8px;
+.cnt-lbl {
+  font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.3px;
+  color: var(--text-muted);
 }
 
-.recent-section { margin-top: 32px; }
-
-.recent-list { display: flex; flex-direction: column; gap: 10px; }
-
-.recent-item {
+.cnt-sep {
   display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 16px 20px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
+  align-items: flex-start;
+  padding-top: 29px;
 }
 
-
-.recent-dot {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--rosa-400);
-  flex-shrink: 0;
-}
-
-.recent-info { flex: 1; }
-.recent-info .date { font-size: 12px; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
-.recent-info .activities { font-size: 13.5px; color: var(--text); margin-top: 2px; }
-
-.recent-hours {
+.home-counter-legend {
   font-family: 'Covered By Your Grace', cursive;
-  font-size: 24px;
+  font-size: 20px;
+  color: var(--rosa-400);
+}
+
+.home-no-date {
+  font-size: 13px;
+  color: var(--text-muted);
+  font-style: italic;
+  text-align: center;
+  cursor: pointer;
+  padding: 4px 0;
+}
+
+.home-no-date:hover { color: var(--rosa-500); }
+
+.home-quote {
+  text-align: center;
+  max-width: 340px;
+  margin-bottom: 36px;
+  padding: 0 8px;
+}
+
+.home-quote-icon {
+  color: var(--rosa-200);
+  display: block;
+  margin: 0 auto 6px;
+}
+
+.home-quote p {
+  font-style: italic;
+  font-size: 15px;
+  color: var(--text-light);
+  line-height: 1.65;
+}
+
+.home-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-register-btn {
+  background: var(--rosa-500);
+  border: none;
+  color: #fff;
+  padding: 13px 36px;
+  border-radius: 50px;
+  font-family: 'Figtree', sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  
+}
+
+.home-register-btn:hover {
+  background: var(--rosa-600);
+}
+
+.home-secondary-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-family: 'Figtree', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: var(--transition);
+  padding: 6px 14px;
+  border-radius: 50px;
+}
+
+.home-secondary-btn:hover {
   color: var(--rosa-600);
+  background: var(--rosa-50);
 }
 
 /* ── FORM PAGE ── */
@@ -702,7 +853,7 @@ input:focus, select:focus, textarea:focus {
 
 .lightbox-content {
   max-width: 90vw;
-  max-height: 90vh;
+  max-height: 90dvh;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -710,7 +861,7 @@ input:focus, select:focus, textarea:focus {
 }
 .lightbox-content img {
   max-width: 100%;
-  max-height: 75vh;
+  max-height: 75dvh;
   object-fit: contain;
   border-radius: var(--radius-sm);
 }
@@ -722,6 +873,7 @@ input:focus, select:focus, textarea:focus {
 @media (max-width: 768px) {
   .album-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
   .album-controls { flex-direction: column; align-items: flex-start; }
+  .home-wrap { min-height: calc(100dvh - 116px); padding: 0 20px; }
 }
 @media (max-width: 480px) {
   .album-grid { grid-template-columns: 1fr; }
@@ -745,7 +897,7 @@ input:focus, select:focus, textarea:focus {
   padding: 32px;
   width: 100%;
   max-width: 560px;
-  max-height: 90vh;
+  max-height: 90dvh;
   overflow-y: auto;
   box-shadow: 0 24px 64px rgba(61,34,51,0.18);
   animation: fadeUp 0.3s ease;
@@ -977,14 +1129,17 @@ input:focus, select:focus, textarea:focus {
   .sidebar { transform: translateX(-100%); z-index: 200; }
   .sidebar.open { transform: translateX(0); }
   .main { margin-left: 0; padding: 76px 18px 40px; }
-  .stats-grid { grid-template-columns: 1fr; }
   .form-grid { grid-template-columns: 1fr; }
   .reports-grid { grid-template-columns: 1fr; }
   .report-summary { grid-template-columns: repeat(2, 1fr); }
   .couple-names-row { grid-template-columns: 1fr; }
   .couple-heart-icon { display: none; }
   .page-header h1 { font-size: 30px; }
-  .home-greeting h1 { font-size: 36px; }
+  .cnt-num { font-size: 58px; }
+  .home-greet-names { font-size: 36px; }
+  .home-polaroid { padding: 8px 8px 18px; }
+  .home-photo-inner { width: 168px; height: 200px; }
+  .home-counter-block { padding: 22px 28px 18px; min-width: 0; }
 
 }
 

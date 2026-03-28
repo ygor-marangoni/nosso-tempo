@@ -63,6 +63,7 @@ const _REF = {
   tags     : _fdb.ref('yj/tags'),
   album    : _fdb.ref('yj/album'),
   timeline : _fdb.ref('yj/timeline'),
+  phrases  : _fdb.ref('yj/phrases'),
 };
 
 // Cache em memória — fonte da verdade após o carregamento
@@ -72,12 +73,13 @@ const _cache = {
   tags     : [],
   album    : [],
   timeline : [],
+  phrases  : [],
 };
 
 // ═══════════════════════════════════════
 // ESTADO DE CARREGAMENTO
 // ═══════════════════════════════════════
-let _pendingLoads = 5;
+let _pendingLoads = 6;
 let _appReady     = false;
 let _loadTimer    = null;
 
@@ -133,6 +135,12 @@ function setupListeners() {
     _cache.timeline = val ? Object.values(val) : [];
     if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
   });
+
+  _REF.phrases.on('value', snap => {
+    const val = snap.val();
+    _cache.phrases = val ? Object.values(val) : [];
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
 }
 
 // Atualiza a renderização da página atual sem resetar formulários
@@ -147,7 +155,7 @@ function _refreshCurrentPage() {
     reports : renderReports,
     album    : () => renderAlbum(albumFilter),
     timeline : renderTimeline,
-    config   : renderGlobalTags,
+    config   : initConfig,
   })[pageId]?.();
 }
 
@@ -213,8 +221,8 @@ function removePhotoFromAlbum(id) {
 }
 
 function saveConf(c) {
-  _cache.config = c;
-  _REF.config.set(c)
+  _cache.config = { ..._cache.config, ...c };
+  _REF.config.update(c)
     .catch(() => showToast('Erro ao sincronizar com a nuvem'));
 }
 
@@ -272,29 +280,73 @@ function showToast(msg) {
 // HOME
 // ═══════════════════════════════════════
 function refreshHome() {
-  const data = entries();
-  const totalH = data.reduce((s, e) => s + e.hours, 0);
-  document.getElementById('stat-total-hours').textContent = formatTime(totalH);
-  document.getElementById('stat-total-days').textContent = new Set(data.map(e => e.date)).size;
+  const c = config();
+  const { name1 = 'Ygor', name2 = 'Julianne' } = c;
 
-  const ac = {};
-  data.forEach(e => (e.activities || []).forEach(a => { ac[a] = (ac[a]||0) + 1; }));
-  const sorted = Object.entries(ac).sort((a,b) => b[1]-a[1]);
-  document.getElementById('stat-top-activity').textContent = sorted.length ? sorted[0][0] : '---';
+  // Saudação com coração inline
+  const heartSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="var(--rosa-500)" stroke="var(--rosa-500)" stroke-width="1.5" style="vertical-align:middle;margin:0 4px;position:relative;top:-2px"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  document.getElementById('home-greet').innerHTML =
+    `<span class="home-greet-names">${name1}${heartSvg}${name2}</span>`;
 
-  const recent = [...data].sort((a,b) => b.date.localeCompare(a.date)).slice(0,5);
-  const rl = document.getElementById('recent-list');
+  // Sub-saudação rotativa
+  const subPhrases = [
+    'que bom ter vocês aqui',
+    'mais um dia dessa história linda',
+    'cada momento de vocês importa',
+    'essa história fica mais bonita todo dia',
+    'que dia lindo pra estar juntos',
+  ];
+  document.getElementById('home-subgreet').textContent = subPhrases[Math.floor(Math.random() * subPhrases.length)];
 
-  if (!recent.length) {
-    rl.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-lucide="pen-line" style="width:38px;height:38px"></i></div><h3>Nenhum registro ainda</h3><p>Comece registrando o tempo que vocês passam juntos</p></div>`;
-    lucide.createIcons();
-    return;
+  // Foto do casal
+  const polaroidEl = document.getElementById('home-polaroid');
+  const heartEl    = document.getElementById('home-photo-heart');
+  const phEl       = document.getElementById('home-photo-placeholder');
+  if (c.couplePhoto) {
+    document.getElementById('home-photo-img').src = c.couplePhoto;
+    polaroidEl.style.display = '';
+    heartEl.style.display    = '';
+    phEl.style.display       = 'none';
+  } else {
+    polaroidEl.style.display = 'none';
+    heartEl.style.display    = 'none';
+    phEl.style.display       = '';
   }
 
-  rl.innerHTML = recent.map(e => {
-    const d = new Date(e.date + 'T12:00:00');
-    return `<div class="recent-item"><div class="recent-dot"></div><div class="recent-info"><div class="date">${d.toLocaleDateString('pt-BR',{day:'2-digit',month:'short'})}</div><div class="activities">${(e.activities||[]).join(', ') || 'Sem atividades'}</div></div><div class="recent-hours">${formatTime(e.hours)}</div></div>`;
-  }).join('');
+  // Contador do relacionamento
+  const cntWrap = document.getElementById('home-counter-wrap');
+  const noDate  = document.getElementById('home-no-date');
+  if (c.startDate) {
+    const start = new Date(c.startDate + 'T12:00:00');
+    const now   = new Date();
+    let years  = now.getFullYear() - start.getFullYear();
+    let months = now.getMonth()    - start.getMonth();
+    let days   = now.getDate()     - start.getDate();
+    if (days < 0) {
+      months--;
+      days += new Date(now.getFullYear(), now.getMonth(), 0).getDate();
+    }
+    if (months < 0) { years--; months += 12; }
+    document.getElementById('cnt-years').textContent  = years;
+    document.getElementById('cnt-months').textContent = months;
+    document.getElementById('cnt-days').textContent   = days;
+    cntWrap.style.display = '';
+    noDate.style.display  = 'none';
+  } else {
+    cntWrap.style.display = 'none';
+    noDate.style.display  = '';
+  }
+
+  // Frase aleatória
+  const phrases   = _cache.phrases || [];
+  const quoteWrap = document.getElementById('home-quote');
+  if (phrases.length) {
+    const p = phrases[Math.floor(Math.random() * phrases.length)];
+    document.getElementById('home-quote-text').textContent = p.text;
+    quoteWrap.style.display = '';
+  } else {
+    quoteWrap.style.display = 'none';
+  }
 }
 
 // ═══════════════════════════════════════
@@ -1054,7 +1106,97 @@ function initConfig() {
   const c = config();
   document.getElementById('cfg-name1').value = c.name1 || 'Ygor';
   document.getElementById('cfg-name2').value = c.name2 || 'Julianne';
+  document.getElementById('cfg-start-date').value = c.startDate || '';
+
+  // Foto do casal
+  const photo = c.couplePhoto;
+  if (photo) {
+    document.getElementById('cfg-photo-preview-img').src = photo;
+    document.getElementById('cfg-photo-placeholder').style.display = 'none';
+    document.getElementById('cfg-photo-preview').style.display = 'block';
+    document.getElementById('cfg-remove-photo-btn').style.display = '';
+  } else {
+    document.getElementById('cfg-photo-preview').style.display = 'none';
+    document.getElementById('cfg-photo-placeholder').style.display = 'flex';
+    document.getElementById('cfg-remove-photo-btn').style.display = 'none';
+  }
+
   renderGlobalTags();
+  renderPhrasesList();
+}
+
+// ─── Foto do casal ───────────────────────────────
+let _cfgPhotoPending = null;
+
+function handleCouplePhotoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 400, src => {
+    _cfgPhotoPending = src;
+    document.getElementById('cfg-photo-preview-img').src = src;
+    document.getElementById('cfg-photo-placeholder').style.display = 'none';
+    document.getElementById('cfg-photo-preview').style.display = 'block';
+  });
+}
+
+function clearCouplePhotoPreview(e) {
+  e.stopPropagation();
+  _cfgPhotoPending = null;
+  document.getElementById('cfg-photo-input').value = '';
+  document.getElementById('cfg-photo-preview').style.display = 'none';
+  document.getElementById('cfg-photo-placeholder').style.display = 'flex';
+}
+
+function saveCouplePhoto() {
+  const src = _cfgPhotoPending || _cache.config?.couplePhoto;
+  if (!src) { showToast('Selecione uma foto primeiro'); return; }
+  _REF.config.update({ couplePhoto: src }).catch(() => showToast('Erro ao sincronizar com a nuvem'));
+  _cfgPhotoPending = null;
+  showToast('Foto salva');
+}
+
+function removeCouplePhoto() {
+  showConfirm('Remover a foto do casal?', () => {
+    _REF.config.child('couplePhoto').remove().catch(() => showToast('Erro ao sincronizar com a nuvem'));
+    document.getElementById('cfg-photo-preview').style.display = 'none';
+    document.getElementById('cfg-photo-placeholder').style.display = 'flex';
+    document.getElementById('cfg-remove-photo-btn').style.display = 'none';
+    _cfgPhotoPending = null;
+    showToast('Foto removida');
+  });
+}
+
+// ─── Data do relacionamento ──────────────────────
+function saveStartDate() {
+  const date = document.getElementById('cfg-start-date').value;
+  if (!date) { showToast('Selecione uma data'); return; }
+  _REF.config.update({ startDate: date }).catch(() => showToast('Erro ao sincronizar com a nuvem'));
+  showToast('Data salva');
+}
+
+// ─── Frases do casal ─────────────────────────────
+function addCouplePhrase() {
+  const v = document.getElementById('cfg-new-phrase').value.trim();
+  if (!v) return;
+  const id = Date.now();
+  _REF.phrases.child(String(id)).set({ id, text: v }).catch(() => showToast('Erro ao sincronizar com a nuvem'));
+  document.getElementById('cfg-new-phrase').value = '';
+  showToast('Frase adicionada');
+}
+
+function removeCouplePhrase(id) {
+  _REF.phrases.child(String(id)).remove().catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function renderPhrasesList() {
+  const list = document.getElementById('cfg-phrases-list');
+  if (!list) return;
+  const phrases = _cache.phrases || [];
+  if (!phrases.length) { list.innerHTML = ''; return; }
+  list.innerHTML = phrases.map(p =>
+    `<span class="removable-tag"><i data-lucide="quote" style="width:12px;height:12px"></i> ${p.text} <button onclick="removeCouplePhrase(${p.id})"><i data-lucide="x" style="width:11px;height:11px"></i></button></span>`
+  ).join('');
+  lucide.createIcons();
 }
 
 function saveConfig() {
