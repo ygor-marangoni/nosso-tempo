@@ -985,6 +985,289 @@ input:focus, select:focus, textarea:focus {
   .couple-heart-icon { display: none; }
   .page-header h1 { font-size: 30px; }
   .home-greeting h1 { font-size: 36px; }
+
+}
+
+/* ── TIMELINE ── */
+.milestone-count {
+  font-family: 'Covered By Your Grace', cursive;
+  font-size: 20px;
+  color: var(--rosa-400);
+  text-align: center;
+  margin-bottom: 24px;
+  letter-spacing: 0.3px;
+  margin-top: 48px;
+}
+
+.tl-wrap {
+  position: relative;
+  padding: 8px 0 32px;
+}
+
+.tl-vline {
+  position: absolute;
+  left: 50%;
+  top: 0; bottom: 0;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--rosa-200), var(--rosa-300), var(--rosa-200));
+  transform: translateX(-50%);
+  border-radius: 2px;
+}
+
+.tl-item {
+  display: grid;
+  grid-template-columns: 1fr 44px 1fr;
+  align-items: start;
+  margin-bottom: 0;
+}
+
+.tl-center {
+  grid-column: 2;
+  grid-row: 1;
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+  z-index: 2;
+}
+
+.tl-left .tl-card-wrap {
+  grid-column: 1;
+  grid-row: 1;
+  padding-right: 28px;
+}
+
+.tl-right .tl-card-wrap {
+  grid-column: 3;
+  grid-row: 1;
+  padding-left: 28px;
+}
+
+/* ── Timeline dot ── */
+.tl-dot {
+  width: 14px;
+  height: 14px;
+  background: var(--rosa-500);
+  border: 3px solid var(--card);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--rosa-300);
+  flex-shrink: 0;
+}
+
+.tl-dot-pulse {
+  animation: dotPulse 2.2s ease-in-out infinite;
+}
+
+@keyframes dotPulse {
+  0%, 100% { box-shadow: 0 0 0 2px var(--rosa-300); }
+  50% { box-shadow: 0 0 0 7px rgba(239, 80, 135, 0.18), 0 0 0 2px var(--rosa-300); }
+}
+
+.tl-dot-first {
+  width: 22px;
+  height: 22px;
+  background: var(--rosa-600);
+  border: 3px solid var(--card);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--rosa-400);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.tl-dot-first::after {
+  content: '♥';
+  font-size: 9px;
+  color: #fff;
+  line-height: 1;
+  position: relative;
+  top: 0.5px;
+}
+
+/* ── Milestone card ── */
+.milestone-card {
+  background: linear-gradient(135deg, var(--rosa-50) 0%, #fff 60%);
+  border: 1.5px solid var(--rosa-200);
+  border-radius: var(--radius);
+  padding: 20px 20px 16px;
+  position: relative;
+  transition: border-color var(--transition), transform var(--transition);
+}
+.milestone-card:hover {
+  border-color: var(--rosa-300);
+  transform: translateY(-2px);
+}
+
+.milestone-card-edit {
+  background: var(--rosa-50);
+  border-color: var(--rosa-300);
+}
+.milestone-card-edit:hover {
+  transform: none;
+}
+
+.ms-card-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity var(--transition);
+}
+.milestone-card:hover .ms-card-actions { opacity: 1; }
+
+.ms-btn-action {
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: var(--transition);
+}
+.ms-btn-action:hover {
+  background: var(--rosa-100);
+  color: var(--rosa-600);
+}
+.ms-btn-delete:hover {
+  background: #fff0f0;
+  color: #c0392b;
+}
+
+.ms-date {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--rosa-500);
+  margin-bottom: 6px;
+}
+
+.ms-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.4;
+  padding-right: 60px;
+}
+
+.ms-desc {
+  font-size: 12.5px;
+  color: var(--text-light);
+  margin-top: 6px;
+  font-style: italic;
+}
+
+.ms-photo {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  max-height: 200px;
+  margin-top: 12px;
+  cursor: pointer;
+  transition: transform var(--transition);
+  display: block;
+  border: 1px solid var(--rosa-100);
+}
+.ms-photo:hover { transform: scale(1.012); }
+
+.ms-relative-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.ms-relative-time::before {
+  content: '♥';
+  font-size: 9px;
+  color: var(--rosa-300);
+}
+
+/* ── Between label ── */
+.tl-between {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 28px 0;
+  position: relative;
+  z-index: 1;
+}
+
+.tl-between span {
+  background: var(--rosa-100);
+  color: var(--rosa-700);
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 4px 14px;
+  border-radius: 50px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid var(--rosa-200);
+}
+
+/* ── Upload area overrides for timeline form ── */
+.ms-upload-area { min-height: 110px; }
+.ms-upload-area-sm { min-height: 80px; }
+
+/* ── TIMELINE MOBILE ── */
+@media (max-width: 768px) {
+  .tl-wrap { padding: 4px 0 20px; }
+
+  /* Line on the far left */
+  .tl-vline { left: 17px; transform: none; }
+
+  /* Switch from grid to flex — no more left/right alternation */
+  .tl-item {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    margin-bottom: 0;
+  }
+
+  /* Dot column: fixed 38px */
+  .tl-center {
+    flex-shrink: 0;
+    width: 38px;
+    padding-top: 18px;
+    grid-column: unset;
+    grid-row: unset;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* Card column: takes remaining width, no left/right padding difference */
+  .tl-left .tl-card-wrap,
+  .tl-right .tl-card-wrap {
+    flex: 1;
+    min-width: 0;
+    padding: 0 0 0 10px;
+    grid-column: unset;
+    grid-row: unset;
+  }
+
+  /* Between label left-aligned under the line */
+  .tl-between { justify-content: flex-start; padding-left: 50px; margin: 22px 0; }
+  .tl-between span { font-size: 10px; padding: 3px 12px; }
+
+  /* Smaller dot on mobile */
+  .tl-dot { width: 12px; height: 12px; }
+  .tl-dot-first { width: 18px; height: 18px; }
+  .tl-dot-first::after { font-size: 7px; }
+
+  /* Cards full-width, tighter padding, no hover effect */
+  .milestone-card { padding: 14px 14px 12px; }
+  .milestone-card:hover { border-color: var(--rosa-200); transform: none; }
+  .ms-title { padding-right: 52px; font-size: 14.5px; }
+  .ms-card-actions { opacity: 1; top: 10px; right: 10px; }
+  .ms-btn-action { width: 26px; height: 26px; }
 }
 
 /* ── LOADING SCREEN ── */

@@ -58,24 +58,26 @@ const FIREBASE_CONFIG = {
 firebase.initializeApp(FIREBASE_CONFIG);
 const _fdb = firebase.database();
 const _REF = {
-  entries : _fdb.ref('yj/entries'),
-  config  : _fdb.ref('yj/config'),
-  tags    : _fdb.ref('yj/tags'),
-  album   : _fdb.ref('yj/album'),
+  entries  : _fdb.ref('yj/entries'),
+  config   : _fdb.ref('yj/config'),
+  tags     : _fdb.ref('yj/tags'),
+  album    : _fdb.ref('yj/album'),
+  timeline : _fdb.ref('yj/timeline'),
 };
 
 // Cache em memória — fonte da verdade após o carregamento
 const _cache = {
-  entries : [],
-  config  : { name1: 'Ygor', name2: 'Julianne' },
-  tags    : [],
-  album   : [],
+  entries  : [],
+  config   : { name1: 'Ygor', name2: 'Julianne' },
+  tags     : [],
+  album    : [],
+  timeline : [],
 };
 
 // ═══════════════════════════════════════
 // ESTADO DE CARREGAMENTO
 // ═══════════════════════════════════════
-let _pendingLoads = 4;
+let _pendingLoads = 5;
 let _appReady     = false;
 let _loadTimer    = null;
 
@@ -125,6 +127,12 @@ function setupListeners() {
     _cache.album = val ? Object.values(val) : [];
     if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
   });
+
+  _REF.timeline.on('value', snap => {
+    const val = snap.val();
+    _cache.timeline = val ? Object.values(val) : [];
+    if (_appReady) _refreshCurrentPage(); else _onDataLoaded();
+  });
 }
 
 // Atualiza a renderização da página atual sem resetar formulários
@@ -137,8 +145,9 @@ function _refreshCurrentPage() {
     register: renderTags,
     history : () => renderHistory(curFilter),
     reports : renderReports,
-    album   : () => renderAlbum(albumFilter),
-    config  : renderGlobalTags,
+    album    : () => renderAlbum(albumFilter),
+    timeline : renderTimeline,
+    config   : renderGlobalTags,
   })[pageId]?.();
 }
 
@@ -236,11 +245,11 @@ function navigateTo(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  const idx = { home:0, register:1, history:2, reports:3, album:4, config:5 };
+  const idx = { home:0, register:1, history:2, reports:3, album:4, timeline:5, config:6 };
   document.querySelectorAll('.nav-item')[idx[page]].classList.add('active');
   localStorage.setItem('yj_page', page);
 
-  ({ home: refreshHome, register: initRegister, history: () => renderHistory('all'), reports: renderReports, album: initAlbum, config: initConfig })[page]();
+  ({ home: refreshHome, register: initRegister, history: () => renderHistory('all'), reports: renderReports, album: initAlbum, timeline: initTimeline, config: initConfig })[page]();
 
   document.getElementById('sidebar').classList.remove('open');
   document.getElementById('overlay').classList.remove('show');
@@ -708,6 +717,278 @@ function openLightbox(id) {
 function closeLightbox() {
   document.getElementById('lightbox-overlay').classList.remove('show');
   document.getElementById('lightbox-img').src = '';
+}
+
+// ═══════════════════════════════════════
+// LINHA DO TEMPO
+// ═══════════════════════════════════════
+let pendingMilestoneSrc = null;
+let editingMilestoneId  = null;
+let editingMilestoneSrc = null;
+
+function milestones() { return _cache.timeline || []; }
+
+function addMilestone(m) {
+  _REF.timeline.child(String(m.id)).set(m)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+function removeMilestone(id) {
+  _REF.timeline.child(String(id)).remove()
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+function updateMilestone(m) {
+  _REF.timeline.child(String(m.id)).set(m)
+    .catch(() => showToast('Erro ao sincronizar com a nuvem'));
+}
+
+function initTimeline() {
+  closeMilestoneForm();
+  editingMilestoneId = null;
+  editingMilestoneSrc = null;
+  renderTimeline();
+}
+
+function openMilestoneForm() {
+  document.getElementById('milestone-form-card').style.display = 'block';
+  document.getElementById('btn-add-milestone').style.display = 'none';
+  document.getElementById('ms-date').value = '';
+  document.getElementById('ms-title').value = '';
+  document.getElementById('ms-desc').value = '';
+  pendingMilestoneSrc = null;
+  document.getElementById('ms-upload-placeholder').style.display = '';
+  document.getElementById('ms-upload-preview').style.display = 'none';
+  document.getElementById('ms-preview-img').src = '';
+  document.getElementById('ms-photo-input').value = '';
+  lucide.createIcons();
+}
+
+function closeMilestoneForm() {
+  const fc = document.getElementById('milestone-form-card');
+  const btn = document.getElementById('btn-add-milestone');
+  if (fc) fc.style.display = 'none';
+  if (btn) btn.style.display = '';
+  pendingMilestoneSrc = null;
+}
+
+function handleMilestonePhotoSelect(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 800, src => {
+    pendingMilestoneSrc = src;
+    document.getElementById('ms-preview-img').src = src;
+    document.getElementById('ms-upload-placeholder').style.display = 'none';
+    document.getElementById('ms-upload-preview').style.display = 'block';
+  });
+}
+
+function removeMilestonePreview(e) {
+  if (e) e.stopPropagation();
+  pendingMilestoneSrc = null;
+  document.getElementById('ms-preview-img').src = '';
+  document.getElementById('ms-upload-placeholder').style.display = '';
+  document.getElementById('ms-upload-preview').style.display = 'none';
+  document.getElementById('ms-photo-input').value = '';
+}
+
+function saveMilestone() {
+  const date  = document.getElementById('ms-date').value;
+  const title = document.getElementById('ms-title').value.trim();
+  const desc  = document.getElementById('ms-desc').value.trim();
+  if (!date || !title) { showToast('Preencha a data e o título'); return; }
+  addMilestone({ id: Date.now(), date, title, desc, photo: pendingMilestoneSrc || null });
+  closeMilestoneForm();
+  showToast('Marco salvo na linha do tempo');
+}
+
+function startEditMilestone(id) {
+  editingMilestoneId = id;
+  const m = milestones().find(x => x.id === id);
+  editingMilestoneSrc = m ? (m.photo || null) : null;
+  renderTimeline();
+}
+
+function cancelEditMilestone() {
+  editingMilestoneId = null;
+  editingMilestoneSrc = null;
+  renderTimeline();
+}
+
+function handleEditMilestonePhoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  resizeImage(file, 800, src => {
+    editingMilestoneSrc = src;
+    const prev = document.getElementById('ms-edit-preview-img');
+    const ph   = document.getElementById('ms-edit-upload-placeholder');
+    const pv   = document.getElementById('ms-edit-upload-preview');
+    if (prev) prev.src = src;
+    if (ph)   ph.style.display = 'none';
+    if (pv)   pv.style.display = 'block';
+  });
+}
+
+function removeEditMilestonePhoto(e) {
+  if (e) e.stopPropagation();
+  editingMilestoneSrc = null;
+  const prev = document.getElementById('ms-edit-preview-img');
+  const ph   = document.getElementById('ms-edit-upload-placeholder');
+  const pv   = document.getElementById('ms-edit-upload-preview');
+  if (prev) prev.src = '';
+  if (ph)   ph.style.display = '';
+  if (pv)   pv.style.display = 'none';
+}
+
+function saveEditMilestone() {
+  const date  = document.getElementById('ms-edit-date').value;
+  const title = document.getElementById('ms-edit-title').value.trim();
+  const desc  = document.getElementById('ms-edit-desc').value.trim();
+  if (!date || !title) { showToast('Preencha a data e o título'); return; }
+  const original = milestones().find(x => x.id === editingMilestoneId);
+  if (!original) return;
+  updateMilestone({ ...original, date, title, desc, photo: editingMilestoneSrc });
+  editingMilestoneId = null;
+  editingMilestoneSrc = null;
+  showToast('Marco atualizado');
+}
+
+function deleteMilestone(id) {
+  showConfirm('Deseja remover este marco?', () => {
+    removeMilestone(id);
+    showToast('Marco removido');
+  });
+}
+
+function openMilestonePhotoLightbox(id) {
+  const m = milestones().find(x => x.id === id);
+  if (!m || !m.photo) return;
+  const months = ['jan','fev','mar','abr','mai','jun','jul','ago','set','out','nov','dez'];
+  const d = new Date(m.date + 'T12:00:00');
+  document.getElementById('lightbox-img').src = m.photo;
+  document.getElementById('lightbox-caption').textContent = m.title || '';
+  document.getElementById('lightbox-date').textContent = `${d.getDate()} de ${months[d.getMonth()]}, ${d.getFullYear()}`;
+  document.getElementById('lightbox-overlay').classList.add('show');
+}
+
+function relativeTime(dateStr) {
+  const diff   = Date.now() - new Date(dateStr + 'T12:00:00').getTime();
+  const days   = Math.floor(diff / 86400000);
+  if (days === 0) return 'hoje';
+  if (days === 1) return 'há 1 dia';
+  if (days < 30)  return `há ${days} dias`;
+  const months = Math.floor(days / 30.44);
+  if (months < 12) return months === 1 ? 'há 1 mês' : `há ${months} meses`;
+  const years = Math.floor(months / 12);
+  const rem   = months % 12;
+  const y  = years  === 1 ? '1 ano'  : `${years} anos`;
+  const m2 = rem    === 1 ? '1 mês'  : `${rem} meses`;
+  return rem === 0 ? `há ${y}` : `há ${y} e ${m2}`;
+}
+
+function timeBetween(olderDate, newerDate) {
+  const diff  = new Date(newerDate + 'T12:00:00') - new Date(olderDate + 'T12:00:00');
+  const days  = Math.floor(diff / 86400000);
+  if (days === 0) return 'no mesmo dia';
+  if (days === 1) return '1 dia depois';
+  if (days < 30)  return `${days} dias depois`;
+  const months = Math.floor(days / 30.44);
+  if (months < 12) return months === 1 ? '1 mês depois' : `${months} meses depois`;
+  const years = Math.floor(months / 12);
+  const rem   = months % 12;
+  const y  = years === 1 ? '1 ano'  : `${years} anos`;
+  const m2 = rem   === 1 ? '1 mês'  : `${rem} meses`;
+  return rem === 0 ? `${y} depois` : `${y} e ${m2} depois`;
+}
+
+function renderTimeline() {
+  const months = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+  const data = [...milestones()].sort((a, b) => b.date.localeCompare(a.date));
+
+  const countEl = document.getElementById('milestone-count');
+  if (countEl) countEl.textContent = data.length === 0 ? '' : data.length === 1 ? '1 marco na história de vocês' : `${data.length} marcos na história de vocês`;
+
+  const container = document.getElementById('timeline-container');
+  if (!container) return;
+
+  if (!data.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon"><i data-lucide="heart" style="width:38px;height:38px"></i></div><h3>A história de vocês começa aqui</h3><p>Adicione os marcos mais importantes do relacionamento de vocês</p></div>`;
+    lucide.createIcons();
+    return;
+  }
+
+  let html = '<div class="tl-wrap"><div class="tl-vline"></div>';
+
+  data.forEach((m, idx) => {
+    const side     = idx % 2 === 0 ? 'tl-left' : 'tl-right';
+    const isNewest = idx === 0;
+    const isOldest = idx === data.length - 1;
+    const dotCls   = isNewest ? 'tl-dot tl-dot-pulse' : isOldest ? 'tl-dot tl-dot-first' : 'tl-dot';
+    const d        = new Date(m.date + 'T12:00:00');
+    const dateStr  = `${d.getDate()} de ${months[d.getMonth()]}, ${d.getFullYear()}`;
+    const isEditing = editingMilestoneId === m.id;
+
+    let cardHtml;
+    if (isEditing) {
+      cardHtml = `<div class="milestone-card milestone-card-edit">
+        <div class="form-grid">
+          <div>
+            <label><span class="label-icon"><i data-lucide="calendar" style="width:13px;height:13px"></i></span> Data</label>
+            <input type="date" id="ms-edit-date" value="${m.date}">
+          </div>
+          <div>
+            <label><span class="label-icon"><i data-lucide="type" style="width:13px;height:13px"></i></span> Título</label>
+            <input type="text" id="ms-edit-title" value="${m.title.replace(/"/g,'&quot;')}" placeholder="Título do marco">
+          </div>
+          <div class="form-full">
+            <label><span class="label-icon"><i data-lucide="file-text" style="width:13px;height:13px"></i></span> Descrição <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+            <textarea id="ms-edit-desc" placeholder="Conte como foi esse momento...">${m.desc || ''}</textarea>
+          </div>
+          <div class="form-full">
+            <label><span class="label-icon"><i data-lucide="camera" style="width:13px;height:13px"></i></span> Foto <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+            <div class="upload-area ms-upload-area ms-upload-area-sm" onclick="document.getElementById('ms-edit-photo-input').click()">
+              <input type="file" id="ms-edit-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleEditMilestonePhoto(this)">
+              <div class="upload-placeholder ms-upload-placeholder" id="ms-edit-upload-placeholder" ${editingMilestoneSrc ? 'style="display:none"' : ''}>
+                <i data-lucide="camera" style="width:22px;height:22px;color:var(--rosa-300)"></i>
+                <p>Clique para ${m.photo ? 'alterar' : 'adicionar'} foto</p>
+              </div>
+              <div class="upload-preview" id="ms-edit-upload-preview" ${editingMilestoneSrc ? '' : 'style="display:none"'}>
+                <img id="ms-edit-preview-img" src="${editingMilestoneSrc || ''}" alt="" style="max-height:200px">
+                <button class="preview-remove" onclick="removeEditMilestonePhoto(event)"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="form-actions" style="margin-top:20px">
+          <button class="btn btn-primary btn-sm" onclick="saveEditMilestone()"><i data-lucide="check" style="width:14px;height:14px"></i> Salvar</button>
+          <button class="btn btn-secondary btn-sm" onclick="cancelEditMilestone()">Cancelar</button>
+        </div>
+      </div>`;
+    } else {
+      cardHtml = `<div class="milestone-card">
+        <div class="ms-card-actions">
+          <button class="ms-btn-action" onclick="startEditMilestone(${m.id})"><i data-lucide="pencil" style="width:13px;height:13px"></i></button>
+          <button class="ms-btn-action ms-btn-delete" onclick="deleteMilestone(${m.id})"><i data-lucide="trash-2" style="width:13px;height:13px"></i></button>
+        </div>
+        <div class="ms-date">${dateStr}</div>
+        <div class="ms-title">${m.title}</div>
+        ${m.desc ? `<div class="ms-desc">"${m.desc}"</div>` : ''}
+        ${m.photo ? `<img class="ms-photo" src="${m.photo}" alt="" onclick="openMilestonePhotoLightbox(${m.id})">` : ''}
+        <div class="ms-relative-time">${relativeTime(m.date)}</div>
+      </div>`;
+    }
+
+    html += `<div class="tl-item ${side}">
+      <div class="tl-center"><div class="${dotCls}"></div></div>
+      <div class="tl-card-wrap">${cardHtml}</div>
+    </div>`;
+
+    if (idx < data.length - 1) {
+      html += `<div class="tl-between"><span>${timeBetween(data[idx + 1].date, m.date)}</span></div>`;
+    }
+  });
+
+  html += '</div>';
+  container.innerHTML = html;
+  lucide.createIcons();
 }
 
 // ═══════════════════════════════════════

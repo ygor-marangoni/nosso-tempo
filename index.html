@@ -65,6 +65,9 @@
     <li class="nav-item" onclick="navigateTo('album')">
       <span class="nav-icon"><i data-lucide="image" style="width:18px;height:18px"></i></span> Álbum
     </li>
+    <li class="nav-item" onclick="navigateTo('timeline')">
+      <span class="nav-icon"><i data-lucide="milestone" style="width:18px;height:18px"></i></span> Linha do Tempo
+    </li>
     <li class="nav-item" onclick="navigateTo('config')">
       <span class="nav-icon"><i data-lucide="settings" style="width:18px;height:18px"></i></span> Ajustes
     </li>
@@ -267,6 +270,60 @@
 
     <div class="album-count" id="album-count"></div>
     <div class="album-grid" id="album-grid"></div>
+  </section>
+
+  <!-- LINHA DO TEMPO -->
+  <section class="page" id="page-timeline">
+    <div class="page-header">
+      <h1>Nossa Linha do Tempo</h1>
+      <p><i data-lucide="milestone" style="width:14px;height:14px;color:var(--rosa-400)"></i> Reviva cada capítulo dessa história
+
+</p>
+    </div>
+
+    <!-- Formulário de novo marco -->
+    <div class="card" id="milestone-form-card" style="display:none; margin-bottom:28px;">
+      <div class="card-title"><i data-lucide="plus-circle" style="width:14px;height:14px"></i> Novo Marco</div>
+      <div class="form-grid">
+        <div>
+          <label><span class="label-icon"><i data-lucide="calendar" style="width:14px;height:14px"></i></span> Data</label>
+          <input type="date" id="ms-date">
+        </div>
+        <div>
+          <label><span class="label-icon"><i data-lucide="type" style="width:14px;height:14px"></i></span> Título do marco</label>
+          <input type="text" id="ms-title" placeholder="Ex: Nosso primeiro beijo">
+        </div>
+        <div class="form-full">
+          <label><span class="label-icon"><i data-lucide="file-text" style="width:14px;height:14px"></i></span> Descrição <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+          <textarea id="ms-desc" placeholder="Conte como foi esse momento especial..."></textarea>
+        </div>
+        <div class="form-full">
+          <label><span class="label-icon"><i data-lucide="camera" style="width:14px;height:14px"></i></span> Foto <span style="font-weight:400;color:var(--text-muted)">(opcional)</span></label>
+          <div class="upload-area ms-upload-area" id="ms-upload-area" onclick="document.getElementById('ms-photo-input').click()">
+            <input type="file" id="ms-photo-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handleMilestonePhotoSelect(this)">
+            <div class="upload-placeholder ms-upload-placeholder" id="ms-upload-placeholder">
+              <i data-lucide="image-plus" style="width:34px;height:34px;color:var(--rosa-300)"></i>
+              <p>Clique para adicionar uma foto</p>
+            </div>
+            <div class="upload-preview" id="ms-upload-preview" style="display:none">
+              <img id="ms-preview-img" src="" alt="">
+              <button class="preview-remove" onclick="removeMilestonePreview(event)"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveMilestone()"><i data-lucide="heart" style="width:15px;height:15px"></i> Salvar Marco</button>
+        <button class="btn btn-secondary" onclick="closeMilestoneForm()">Cancelar</button>
+      </div>
+    </div>
+
+    <div style="margin-bottom:20px">
+      <button class="btn btn-primary btn-sm" id="btn-add-milestone" onclick="openMilestoneForm()"><i data-lucide="plus" style="width:14px;height:14px"></i> Adicionar Marco</button>
+    </div>
+
+    <div class="milestone-count" id="milestone-count"></div>
+    <div id="timeline-container"></div>
   </section>
 
   <!-- CONFIG -->
