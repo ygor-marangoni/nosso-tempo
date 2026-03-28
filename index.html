@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ygor & Julianne</title>
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Covered+By+Your+Grace&family=Figtree:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Mobile Header -->
+<div class="mobile-header">
+  <span class="mob-title"><i data-lucide="heart" style="width:16px;height:16px;fill:var(--rosa-500);stroke:var(--rosa-500)"></i> Y & J</span>
+  <button class="hamburger" onclick="toggleSidebar()"><i data-lucide="menu" style="width:22px;height:22px"></i></button>
+</div>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo-heart-icon"><i data-lucide="heart" style="width:34px;height:34px;fill:var(--rosa-500);stroke:var(--rosa-500)"></i></div>
+    <div class="logo-title">Nosso Tempo</div>
+    <div class="logo-names">Ygor & Julianne</div>
+  </div>
+
+  <ul class="nav-menu">
+    <li class="nav-item active" onclick="navigateTo('home')">
+      <span class="nav-icon"><i data-lucide="home" style="width:18px;height:18px"></i></span> Início
+    </li>
+    <li class="nav-item" onclick="navigateTo('register')">
+      <span class="nav-icon"><i data-lucide="pencil" style="width:18px;height:18px"></i></span> Registrar
+    </li>
+    <li class="nav-item" onclick="navigateTo('history')">
+      <span class="nav-icon"><i data-lucide="book-open" style="width:18px;height:18px"></i></span> Histórico
+    </li>
+    <li class="nav-item" onclick="navigateTo('reports')">
+      <span class="nav-icon"><i data-lucide="bar-chart-3" style="width:18px;height:18px"></i></span> Relatórios
+    </li>
+    <li class="nav-item" onclick="navigateTo('album')">
+      <span class="nav-icon"><i data-lucide="image" style="width:18px;height:18px"></i></span> Álbum
+    </li>
+    <li class="nav-item" onclick="navigateTo('config')">
+      <span class="nav-icon"><i data-lucide="settings" style="width:18px;height:18px"></i></span> Ajustes
+    </li>
+  </ul>
+
+  <div class="sidebar-footer">
+    <p>feito com <i data-lucide="heart" style="width:12px;height:12px;fill:var(--rosa-400);stroke:var(--rosa-400)"></i> amor</p>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="main">
+
+  <!-- HOME -->
+  <section class="page active" id="page-home">
+    <div class="home-greeting">
+      <div class="heart-icon"><i data-lucide="heart" style="width:44px;height:44px;fill:var(--rosa-500);stroke:var(--rosa-500)"></i></div>
+      <h1>Olá, Ygor!</h1>
+      <p>Veja como vocês estão aproveitando o tempo juntos</p>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon"><i data-lucide="clock" style="width:28px;height:28px"></i></div>
+        <div class="stat-number" id="stat-total-hours">0h</div>
+        <div class="stat-label">Total de horas juntos</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i data-lucide="calendar-days" style="width:28px;height:28px"></i></div>
+        <div class="stat-number" id="stat-total-days">0</div>
+        <div class="stat-label">Dias registrados</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon"><i data-lucide="star" style="width:28px;height:28px"></i></div>
+        <div class="stat-number" id="stat-top-activity" style="font-size:15px">---</div>
+        <div class="stat-label">Atividade favorita</div>
+      </div>
+    </div>
+
+    <div class="recent-section">
+      <div class="card-title"><i data-lucide="list" style="width:14px;height:14px"></i> Registros recentes</div>
+      <div class="recent-list" id="recent-list"></div>
+    </div>
+  </section>
+
+  <!-- REGISTER -->
+  <section class="page" id="page-register">
+    <div class="page-header">
+      <h1>Registrar Momento</h1>
+      <p><i data-lucide="heart" style="width:14px;height:14px;color:var(--rosa-400)"></i> Adicione as horas que vocês passaram juntos</p>
+    </div>
+
+    <div class="card">
+      <div class="form-grid">
+        <div>
+          <label><span class="label-icon"><i data-lucide="calendar" style="width:14px;height:14px"></i></span> Data</label>
+          <input type="date" id="reg-date">
+        </div>
+        <div>
+          <label><span class="label-icon"><i data-lucide="clock" style="width:14px;height:14px"></i></span> Tempo juntos</label>
+          <div class="time-input-row">
+            <input type="number" id="reg-hours" placeholder="0" min="0" max="23" step="1">
+            <span class="time-sep">h</span>
+            <input type="number" id="reg-minutes" placeholder="0" min="0" max="59" step="1">
+            <span class="time-sep">min</span>
+          </div>
+        </div>
+        <div class="form-full">
+          <label><span class="label-icon"><i data-lucide="sparkles" style="width:14px;height:14px"></i></span> O que vocês fizeram?</label>
+          <div class="preset-tags" id="preset-tags"></div>
+          <div class="custom-activity-row">
+            <input type="text" id="custom-activity" placeholder="Adicionar atividade personalizada...">
+            <button class="btn btn-secondary btn-sm" onclick="addCustomTag()"><i data-lucide="plus" style="width:14px;height:14px"></i></button>
+          </div>
+        </div>
+        <div class="form-full">
+          <label><span class="label-icon"><i data-lucide="file-text" style="width:14px;height:14px"></i></span> Observação (opcional)</label>
+          <textarea id="reg-note" placeholder="Algo especial que queira lembrar..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveEntry()"><i data-lucide="heart" style="width:15px;height:15px"></i> Salvar Momento</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- HISTORY -->
+  <section class="page" id="page-history">
+    <div class="page-header">
+      <h1>Nosso Histórico</h1>
+      <p><i data-lucide="book-open" style="width:14px;height:14px;color:var(--rosa-400)"></i> Todos os momentos compartilhados</p>
+    </div>
+
+    <div class="history-filters">
+      <span class="filter-chip active" onclick="filterHistory('all', this)">Todos</span>
+      <span class="filter-chip" onclick="filterHistory('week', this)">Esta semana</span>
+      <span class="filter-chip" onclick="filterHistory('month', this)">Este mês</span>
+    </div>
+
+    <div class="history-list" id="history-list"></div>
+  </section>
+
+  <!-- REPORTS -->
+  <section class="page" id="page-reports">
+    <div class="page-header">
+      <h1>Relatórios</h1>
+      <p><i data-lucide="bar-chart-3" style="width:14px;height:14px;color:var(--rosa-400)"></i> Visualize como vocês aproveitam o tempo</p>
+    </div>
+
+    <div class="report-summary">
+      <div class="report-stat">
+        <div class="icon-wrap"><i data-lucide="clock" style="width:18px;height:18px"></i></div>
+        <div class="value" id="rpt-total-h">0h</div>
+        <div class="label">Total de horas</div>
+      </div>
+      <div class="report-stat">
+        <div class="icon-wrap"><i data-lucide="trending-up" style="width:18px;height:18px"></i></div>
+        <div class="value" id="rpt-avg-h">0h</div>
+        <div class="label">Média semanal</div>
+      </div>
+      <div class="report-stat">
+        <div class="icon-wrap"><i data-lucide="trophy" style="width:18px;height:18px"></i></div>
+        <div class="value" id="rpt-best-day">---</div>
+        <div class="label">Melhor dia</div>
+      </div>
+      <div class="report-stat">
+        <div class="icon-wrap"><i data-lucide="flame" style="width:18px;height:18px"></i></div>
+        <div class="value" id="rpt-streak">0</div>
+        <div class="label">Dias seguidos</div>
+      </div>
+    </div>
+
+    <div class="reports-grid">
+      <div class="chart-card full-width">
+        <div class="chart-title"><i data-lucide="trending-up" style="width:14px;height:14px"></i> Horas por dia - últimos 30 dias</div>
+        <div class="chart-container tall"><canvas id="chart-daily"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i data-lucide="target" style="width:14px;height:14px"></i> Atividades mais frequentes</div>
+        <div class="chart-container"><canvas id="chart-activities"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title"><i data-lucide="calendar-days" style="width:14px;height:14px"></i> Horas por dia - últimos 7 dias</div>
+        <div class="chart-container"><canvas id="chart-weekday"></canvas></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ÁLBUM -->
+  <section class="page" id="page-album">
+    <div class="page-header">
+      <h1>Nosso Álbum</h1>
+      <p><i data-lucide="image" style="width:14px;height:14px;color:var(--rosa-400)"></i> As memórias mais especiais de vocês dois</p>
+    </div>
+
+    <!-- Formulário de nova foto -->
+    <div class="card album-form-card" id="album-form-card" style="display:none; margin-bottom:28px;">
+      <div class="card-title"><i data-lucide="image" style="width:14px;height:14px"></i> Nova Foto</div>
+      <div class="upload-area" id="upload-area" onclick="handleUploadClick()">
+        <input type="file" id="photo-input" accept="image/jpeg,image/png,image/webp" style="display:none" onchange="handlePhotoSelect(this)">
+        <div class="upload-placeholder" id="upload-placeholder">
+          <i data-lucide="upload-cloud" style="width:40px;height:40px;color:var(--rosa-300)"></i>
+          <p>Clique ou arraste uma foto aqui</p>
+          <span>JPG, PNG ou WEBP</span>
+        </div>
+        <div class="upload-preview" id="upload-preview" style="display:none">
+          <img id="preview-img" src="" alt="">
+          <button class="preview-remove" onclick="removePreview(event)"><i data-lucide="x" style="width:14px;height:14px"></i></button>
+        </div>
+      </div>
+      <div class="form-grid" style="margin-top:24px;">
+        <div>
+          <label><span class="label-icon"><i data-lucide="calendar" style="width:14px;height:14px"></i></span> Data</label>
+          <input type="date" id="album-date">
+        </div>
+        <div>
+          <label><span class="label-icon"><i data-lucide="type" style="width:14px;height:14px"></i></span> Legenda</label>
+          <input type="text" id="album-caption" placeholder="Uma legenda especial...">
+        </div>
+        <div class="form-full">
+          <label><span class="label-icon"><i data-lucide="file-text" style="width:14px;height:14px"></i></span> Descrição (opcional)</label>
+          <textarea id="album-desc" placeholder="Conte mais sobre esse momento..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="savePhoto()"><i data-lucide="heart" style="width:15px;height:15px"></i> Salvar no Álbum</button>
+        <button class="btn btn-secondary" onclick="closeAlbumForm()">Cancelar</button>
+      </div>
+    </div>
+
+    <!-- Controles -->
+    <div class="album-controls">
+      <button class="btn btn-primary btn-sm" id="btn-add-photo" onclick="openAlbumForm()"><i data-lucide="plus" style="width:14px;height:14px"></i> Adicionar Foto</button>
+      <div class="album-filters">
+        <span class="filter-chip active" onclick="filterAlbum('all', this)">Todas</span>
+        <span class="filter-chip" onclick="filterAlbum('month', this)">Este mês</span>
+        <span class="filter-chip" onclick="filterAlbum('year', this)">Este ano</span>
+      </div>
+    </div>
+
+    <div class="album-count" id="album-count"></div>
+    <div class="album-grid" id="album-grid"></div>
+  </section>
+
+  <!-- CONFIG -->
+  <section class="page" id="page-config">
+    <div class="page-header">
+      <h1>Ajustes</h1>
+      <p><i data-lucide="settings" style="width:14px;height:14px;color:var(--rosa-400)"></i> Personalize a experiência do casal</p>
+    </div>
+
+    <div class="card config-section">
+      <div class="card-title"><i data-lucide="users" style="width:14px;height:14px"></i> Nomes do casal</div>
+      <div class="couple-names-row">
+        <div>
+          <label>Seu nome</label>
+          <input type="text" id="cfg-name1" value="Ygor">
+        </div>
+        <div class="couple-heart-icon"><i data-lucide="heart" style="width:22px;height:22px;fill:var(--rosa-400);stroke:var(--rosa-400)"></i></div>
+        <div>
+          <label>Nome dela</label>
+          <input type="text" id="cfg-name2" value="Julianne">
+        </div>
+      </div>
+      <div style="margin-top: 18px">
+        <button class="btn btn-primary btn-sm" onclick="saveConfig()"><i data-lucide="check" style="width:14px;height:14px"></i> Salvar</button>
+      </div>
+    </div>
+
+    <div class="card config-section">
+      <div class="card-title"><i data-lucide="tag" style="width:14px;height:14px"></i> Atividades personalizadas</div>
+      <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:12px">Adicione atividades que aparecem ao registrar</p>
+      <div class="tag-input-row">
+        <button class="icon-picker-btn" id="cfg-icon-btn" type="button" onclick="openIconPicker(event)"><i data-lucide="sparkles" style="width:16px;height:16px"></i></button>
+        <input type="text" id="cfg-new-tag" placeholder="Nova atividade...">
+        <button class="btn btn-secondary btn-sm tag-add-btn" onclick="addGlobalTag()"><i data-lucide="plus" style="width:14px;height:14px"></i> Adicionar</button>
+      </div>
+      <div class="icon-picker-popup" id="icon-picker-popup"></div>
+      <div class="custom-tags-list" id="global-tags-list"></div>
+    </div>
+
+    <div class="card config-section">
+      <div class="card-title"><i data-lucide="trash-2" style="width:14px;height:14px"></i> Dados</div>
+      <p style="font-size:13.5px;color:var(--text-muted);margin-bottom:22px">Cuidado, esta ação é irreversível.</p>
+      <button class="btn btn-secondary btn-sm" onclick="clearAllData()" style="color:#c44"><i data-lucide="alert-triangle" style="width:14px;height:14px"></i> Limpar todos os dados</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- Lightbox -->
+<div class="lightbox-overlay" id="lightbox-overlay" onclick="closeLightbox()">
+  <button class="lightbox-close" onclick="closeLightbox()"><i data-lucide="x" style="width:20px;height:20px"></i></button>
+  <div class="lightbox-content" onclick="event.stopPropagation()">
+    <img id="lightbox-img" src="" alt="">
+    <div class="lightbox-info">
+      <div class="lightbox-caption" id="lightbox-caption"></div>
+      <div class="lightbox-date" id="lightbox-date"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Editar Momento</h2>
+      <button class="modal-close" onclick="closeModal()"><i data-lucide="x" style="width:18px;height:18px"></i></button>
+    </div>
+    <div class="form-grid">
+      <div>
+        <label><span class="label-icon"><i data-lucide="calendar" style="width:14px;height:14px"></i></span> Data</label>
+        <input type="date" id="edit-date">
+      </div>
+      <div>
+        <label><span class="label-icon"><i data-lucide="clock" style="width:14px;height:14px"></i></span> Tempo juntos</label>
+        <div class="time-input-row">
+          <input type="number" id="edit-hours" placeholder="0" min="0" max="23" step="1">
+          <span class="time-sep">h</span>
+          <input type="number" id="edit-minutes" placeholder="0" min="0" max="59" step="1">
+          <span class="time-sep">min</span>
+        </div>
+      </div>
+      <div class="form-full">
+        <label><span class="label-icon"><i data-lucide="sparkles" style="width:14px;height:14px"></i></span> O que vocês fizeram?</label>
+        <div class="preset-tags" id="edit-preset-tags"></div>
+        <div class="custom-activity-row">
+          <input type="text" id="edit-custom-activity" placeholder="Adicionar atividade personalizada...">
+          <button class="btn btn-secondary btn-sm" onclick="addEditCustomTag()"><i data-lucide="plus" style="width:14px;height:14px"></i></button>
+        </div>
+      </div>
+      <div class="form-full">
+        <label><span class="label-icon"><i data-lucide="file-text" style="width:14px;height:14px"></i></span> Observação (opcional)</label>
+        <textarea id="edit-note" placeholder="Algo especial que queira lembrar..."></textarea>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveEdit()"><i data-lucide="check" style="width:15px;height:15px"></i> Salvar</button>
+      <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="modal-overlay" id="confirm-overlay" onclick="cancelConfirm()">
+  <div class="modal confirm-modal" onclick="event.stopPropagation()">
+    <div class="confirm-icon">
+      <i data-lucide="alert-circle" style="width:44px;height:44px;color:var(--rosa-500)"></i>
+    </div>
+    <p id="confirm-message">Tem certeza?</p>
+    <div class="form-actions confirm-actions">
+      <button class="btn btn-primary" onclick="doConfirm()"><i data-lucide="check" style="width:15px;height:15px"></i> Confirmar</button>
+      <button class="btn btn-secondary" onclick="cancelConfirm()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
