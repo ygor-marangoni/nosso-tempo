@@ -637,7 +637,7 @@ function renderReports() {
   const last7bars = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date(); d.setDate(d.getDate() - i);
-    const k = d.toISOString().split('T')[0];
+    const k = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
     const label = d.toLocaleDateString('pt-BR', {weekday: 'short'}).replace('.','');
     last7bars.push({ l: label, h: data.filter(e => e.date === k).reduce((s, e) => s + e.hours, 0) });
   }
