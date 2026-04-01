@@ -378,7 +378,7 @@ let selected = [];
 
 function initRegister() {
   selected = [];
-  document.getElementById('reg-date').value = new Date().toISOString().split('T')[0];
+  const _today = new Date(); document.getElementById('reg-date').value = `${_today.getFullYear()}-${String(_today.getMonth()+1).padStart(2,'0')}-${String(_today.getDate()).padStart(2,'0')}`;
   document.getElementById('reg-hours').value = '';
   document.getElementById('reg-minutes').value = '';
   document.getElementById('reg-note').value = '';
@@ -600,10 +600,11 @@ function renderReports() {
 
   // Streak
   const dates = [...new Set(data.map(e=>e.date))].sort().reverse();
-  let streak = 0, chk = new Date(new Date().toISOString().split('T')[0]+'T12:00:00');
+  const toLocalKey = d => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  let streak = 0, chk = new Date(); chk.setHours(12,0,0,0);
   for (const dt of dates) {
-    if (dt === chk.toISOString().split('T')[0]) { streak++; chk.setDate(chk.getDate()-1); }
-    else if (dt < chk.toISOString().split('T')[0]) break;
+    if (dt === toLocalKey(chk)) { streak++; chk.setDate(chk.getDate()-1); }
+    else if (dt < toLocalKey(chk)) break;
   }
   document.getElementById(els.s).textContent = streak;
 
@@ -613,7 +614,7 @@ function renderReports() {
 
   // Daily line
   const last30 = [];
-  for (let i=29;i>=0;i--) { const d=new Date();d.setDate(d.getDate()-i); const k=d.toISOString().split('T')[0]; last30.push({l:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),h:data.filter(e=>e.date===k).reduce((s,e)=>s+e.hours,0)}); }
+  for (let i=29;i>=0;i--) { const d=new Date();d.setDate(d.getDate()-i); const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; last30.push({l:d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'}),h:data.filter(e=>e.date===k).reduce((s,e)=>s+e.hours,0)}); }
 
   ch1 = new Chart(document.getElementById('chart-daily'), {
     type:'line',
@@ -665,7 +666,7 @@ function initAlbum() {
 function openAlbumForm() {
   document.getElementById('album-form-card').style.display = 'block';
   document.getElementById('btn-add-photo').style.display = 'none';
-  document.getElementById('album-date').value = new Date().toISOString().split('T')[0];
+  const _ad = new Date(); document.getElementById('album-date').value = `${_ad.getFullYear()}-${String(_ad.getMonth()+1).padStart(2,'0')}-${String(_ad.getDate()).padStart(2,'0')}`;
   document.getElementById('album-caption').value = '';
   document.getElementById('album-desc').value = '';
   removePreview(null);

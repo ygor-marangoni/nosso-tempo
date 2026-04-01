@@ -4,7 +4,8 @@
       "Bash(printf '')",
       "Bash(/c/Users/drz/Desktop/Pessoal/Julianne/README.md:*)",
       "Bash(/c/Users/drz/Desktop/Pessoal/Julianne/.gitignore:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(grep -E '\\\\.\\(ts|tsx|js|jsx\\)$|src|components')"
     ]
   }
 }
